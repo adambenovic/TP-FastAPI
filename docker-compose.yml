@@ -1,0 +1,21 @@
+version: '3.0'
+services:
+  postgres:
+    image: postgres:14.1-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DATABASE: $POSTGRES_DATABASE
+      restart: unless-stopped
+  adminer:
+    image: adminer
+    ports:
+      - "8082:8080"
+  pgAdmin:
+    image: dpage/pgadmin4
+    ports:
+      - "8083:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: $PGADMIN_EMAIL
+      PGADMIN_DEFAULT_PASSWORD: $PGADMIN_PASSWORD

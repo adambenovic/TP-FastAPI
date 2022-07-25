@@ -1,0 +1,53 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- develop
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      displayName: Build an image
+      inputs:
+        command: build
+        dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
+        tags: |
+          $(tag)
+    - publish: $(Build.ArtifactStagingDirectory)
+      artifact: drop
+
+- stage: deploy
+  jobs:
+  - deployment: DeployBackend
+    displayName: deploy backend
+    environment: 
+      name: 'DEVELOP Student server'
+      resourceType: VirtualMachine
+    strategy:
+      rolling:
+        deploy:
+          steps:
+          - task: Bash@3
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Starting docker build&up"
+                cd /home/ubuntu/FastAPI\ Backend
+                git checkout develop
+                git pull
+                docker-compose up -d --build
+                echo "Done build&up"

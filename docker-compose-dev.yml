@@ -1,0 +1,36 @@
+version: '3.0'
+services:
+  postgres:
+    image: postgres:14.1-alpine
+    ports:
+      - "5433:5432"
+    env_file:
+      - .env
+      - .env.local
+    restart: unless-stopped
+  fastapi:
+    env_file:
+      - .env
+      - .env.local
+    build:
+      context: .
+      args:
+        ROOT_PATH: ${ROOT_PATH:-/}
+    ports:
+      - 8081:8081
+    depends_on:
+      - postgres
+    volumes:
+      - ./app:/code/app
+      - ./migrations:/code/migrations
+  adminer:
+    image: adminer
+    ports:
+      - "8082:8080"
+  pgAdmin:
+    image: dpage/pgadmin4
+    ports:
+      - "8083:80"
+    env_file:
+      - .env
+      - .env.local
